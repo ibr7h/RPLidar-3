@@ -55,99 +55,83 @@ class RPLidar(object):
     
     def _check_header(self, header):
     	
-    	if(header[0]!=0xA5 || header[1]!=0x5A) :
-    		return 1
-    	if((header[5]&0xC0)>>6) != 0x01) :
-    		return 1
-    	if((header[2]&0xCFFF) != 5) :
-    		return 1
-    	if(header[6] != 0x81) :
-    		return 1
+    	if(0xA5!=ord(header[0]) or 0x5A!=ord(header[1])) :
+            return 1
+    	if(((ord(header[5])&0xC0)>>6) != 0x01) :
+            return 1
+    	if((ord(header[2])&0xCFFF) != 5) :
+            return 1
+    	if(ord(header[6]) != 0x81) :
+            return 1
     	return 0
    
-	def	_stop_scan(self):
-   		i = self.ser.send(0xA525)
-   		if i != 2 :
-   			return 1
-   		else :
-   			return 0
+    def	_stop_scan(self):
+        i = self.ser.write("\xA5\x25")
+        if i != 2 :
+            return 1
+        else :
+            return 0
     
     def _start_scan(self):
-    
-    	i = self.ser.send(0xA520)
-    	if i != 2 :
-    		return 1
-    	header = self.ser.read(7)
-    	return _check_header(header)
+        i = self.ser.write("\xA5\x20")
+        if i != 2 :
+            return 1
+        header = self.ser.read(7)
+        return self._check_header(header)
      
     def _read_lidar(self):
 
         nb_errors = 0
-		
-		time.sleep(120.)	# Need to wait 2 minutes after starting to get 'good' data
-		
+        #time.sleep(120.)	# Need to wait 2 minutes after starting to get 'good' data
         while True:
-
             try:
 
                 time.sleep(0.0001) # do not hog the processor power
 
                 if self.state == 0 :
-                	_stop_scan()
-                	time.sleep(0.01)
+                    print " STATE 0"
+                    self._stop_scan()
+                    time.sleep(0.1)
                     # start byte
-                    if(_start_scan() == 0) :
-		                self.state = 1
-		             else:
+                    if(self._start_scan() == 0) :
+                        self.state = 1
+                    else:
 		             	self.state = 0
                 elif self.state == 1 :
-					angle = 0
-					while(angle < 360.):
-		                data = [ord(b) for b in self._read_bytes(5)]
-						
-						# quality
-						quality = data[0] & 0xFC
-						
-						# start flag	-- 1 for new rotation of data
-						start_flag = data[0] & 0x01
-						start_flag_inv = data[0] & 0x02
-						
-						# angle
-						angle = (data[2]*128 + (data[1]>>1)) / 64.
-						
-		                # distance
-		                distance = (data[4]<<8 | ans[3]) / 4
-		                
-		                # check flag
-		                check_flag = ans[1] & 0x01
-		                
-		                if(start_flag == start_flag_inv):
-		                	self.state = 0
-		                
-		                if(check_bit != 1):
-		                	self.state = 0
-		                
-		                if(self.state == 1):
-		                	self.lidar_data[int(round(angle))] = distance,quality
-		                
+                    print "STATE 1"
+                    angle = 0
+                    while(angle < 360.):
+                        data = [ord(b) for b in self._read_bytes(5)]
+
+                        # quality
+                        quality = data[0] & 0xFC
+
+                        # start flag	-- 1 for new rotation of data
+                        start_flag = data[0] & 0x01
+                        start_flag_inv = data[0] & 0x02
+
+                        # angle
+                        angle = (data[2]*128 + (data[1]>>1)) / 64.
+
+                        # distance
+                        distance = (data[4]<<8 | data[3]) / 4
+
+                        # check flag
+                        check_flag = data[1] & 0x01
+                        #print "Angle = {angle}    |    distance = {distance}    | quality = {quality}".format(angle=angle, distance=distance, quality = quality)
+                        #if(start_flag == start_flag_inv):
+                        #    self.state = 0
+
+                        #if(check_bit != 1):
+                         #   self.state = 0
+
+                        if(self.state == 1 and quality > 0):
+                            self.lidar_data[int(round(angle))] = distance,quality
+
                 else: # default, should never happen...
                     self.state = 0
 
             except:
                 traceback.print_exc()
                 exit(0)
-
-    def _update(self, offset, data ):
-
-        angle = self.index * 4 + offset
-
-        #unpack data using the denomination used during the discussions
-        x = data[0]
-        x1= data[1]
-        x2= data[2]
-        x3= data[3]
-        
-        dist_mm = x | (( x1 & 0x3f) << 8) # distance is coded on 13 bits ? 14 bits ?
-        quality = x2 | (x3 << 8) # quality is on 16 bits
-        self.lidar_data[angle] = dist_mm,quality
-
+                
