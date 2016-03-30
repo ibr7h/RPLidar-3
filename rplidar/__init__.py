@@ -141,9 +141,9 @@ class RPLidar(object):
             except:
                 traceback.print_exc()
                 exit(0)
-            #End of while loop. Exit gracefully
-            print"Exiting RPLidar!"
-            self._stop_scan()
-            self.ser.flush()
-            self.ser.close()
-            exit(0)    
+        #End of while loop. Exit gracefully
+        print"Exiting RPLidar!"
+        self._stop_scan()
+        self.ser.flush()
+        self.ser.close()
+        exit(0)    
