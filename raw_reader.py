@@ -53,11 +53,8 @@ else:
     import thread
 
 if __name__ == '__main__':
-    global done
     signal.signal(signal.SIGINT, signal_handler)
     lidar = RPLidar(COM_PORT)
-    start_time = time.clock()
-    current_time = time.clock()
     while done == 0 :
         time.sleep(1)
         distances = [pair[0] for pair in lidar.getScan()]
@@ -68,8 +65,7 @@ if __name__ == '__main__':
             print "           {angle} | {distance}".format(angle = i, distance = distances[i])
             i = i+1
 
-        current_time = time.clock()
-    
+    lidar.set_exitflag()
     print""
     print "DONE"
         

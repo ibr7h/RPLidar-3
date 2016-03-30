@@ -30,12 +30,19 @@ class RPLidar(object):
         '''
         self.ser = serial.Serial(com_port, 115200)
         self.thread = threading.Thread(target=self._read_lidar, args=())
-        self.thread.daemon = True
+        self.thread.daemon = False
         self.state = 0
+        self.exitflag = 0
         self.index = 0
         self.lidar_data = [()]*360 # 360 elements (distance,quality), indexed by angle
         self.speed_rpm = 0
         self.thread.start()
+
+    def set_exitflag(self):
+        '''
+        Raises the exitflag so thread can exit gracefully.
+        '''
+        self.exitflag = 1
 
     def getScan(self):
         '''
@@ -83,7 +90,7 @@ class RPLidar(object):
 
         nb_errors = 0
         #time.sleep(120.)	# Need to wait 2 minutes after starting to get 'good' data
-        while True:
+        while self.exitflag == 0:
             try:
 
                 time.sleep(0.0001) # do not hog the processor power
@@ -134,4 +141,9 @@ class RPLidar(object):
             except:
                 traceback.print_exc()
                 exit(0)
-                
+            #End of while loop. Exit gracefully
+            print"Exiting RPLidar!"
+            self._stop_scan()
+            self.ser.flush()
+            self.ser.close()
+            exit(0)    
