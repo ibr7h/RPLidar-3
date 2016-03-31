@@ -96,54 +96,51 @@ class RPLidar(object):
                 time.sleep(0.0001) # do not hog the processor power
 
                 if self.state == 0 :
-                    print " STATE 0"
+                    print "STATE 0"
                     self._stop_scan()
                     time.sleep(0.1)
                     # start byte
                     if(self._start_scan() == 0) :
                         self.state = 1
+                        print "STATE 1"
                     else:
 		             	self.state = 0
                 elif self.state == 1 :
-                    print "STATE 1"
-                    angle = 0
-                    while(angle < 360.):
-                        data = [ord(b) for b in self._read_bytes(5)]
+                    data = [ord(b) for b in self._read_bytes(5)]
 
-                        # quality
-                        quality = data[0] & 0xFC
+                    # quality
+                    quality = data[0] & 0xFC
 
-                        # start flag	-- 1 for new rotation of data
-                        start_flag = data[0] & 0x01
-                        start_flag_inv = data[0] & 0x02
+                    # start flag	-- 1 for new rotation of data
+                    start_flag = data[0] & 0x01
+                    start_flag_inv = data[0] & 0x02
 
-                        # angle
-                        angle = (data[2]*128 + (data[1]>>1)) / 64.
+                    # angle
+                    angle = (data[2]*128 + (data[1]>>1)) / 64.
 
-                        # distance
-                        distance = (data[4]<<8 | data[3]) / 4
+                    # distance
+                    distance = (data[4]<<8 | data[3]) / 4
 
-                        # check flag
-                        check_flag = data[1] & 0x01
-                        #print "Angle = {angle}    |    distance = {distance}    | quality = {quality}".format(angle=angle, distance=distance, quality = quality)
-                        #if(start_flag == start_flag_inv):
-                        #    self.state = 0
+                    # check flag
+                    check_flag = data[1] & 0x01
+                    #print "Angle = {angle}    |    distance = {distance}    | quality = {quality}".format(angle=angle, distance=distance, quality = quality)
+                    if(start_flag == start_flag_inv):
+                        self.state = 0
 
-                        #if(check_bit != 1):
-                         #   self.state = 0
+                    if(check_flag != 1):
+                        self.state = 0
 
-                        if(self.state == 1 and quality > 0):
-                            self.lidar_data[int(round(angle))] = distance,quality
+                    if(self.state == 1 and quality > 0):
+                        self.lidar_data[int(round(angle)%360)] = distance,quality
 
                 else: # default, should never happen...
                     self.state = 0
 
             except:
-                traceback.print_exc()
+                #traceback.print_exc()
                 exit(0)
         #End of while loop. Exit gracefully
         print"Exiting RPLidar!"
         self._stop_scan()
-        self.ser.flush()
         self.ser.close()
         exit(0)    
