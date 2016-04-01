@@ -38,6 +38,7 @@ class RPLidar(object):
         self.speed_rpm = 0
         self.thread.start()
 
+
     def set_exitflag(self):
         '''
         Raises the exitflag so thread can exit gracefully.
@@ -85,11 +86,21 @@ class RPLidar(object):
             return 1
         header = self.ser.read(7)
         return self._check_header(header)
-     
+    
+    def _restart(self):
+        i = self.ser.write("\xA5\x25")
+        if i != 2 :
+            return 1
+        return 0
+        
+    def _reset_input_buffer(self):
+        self.ser.flushInput()
+                  
     def _read_lidar(self):
 
         nb_errors = 0
-        #time.sleep(120.)	# Need to wait 2 minutes after starting to get 'good' data
+        self._restart()
+        self._reset_input_buffer()
         while self.exitflag == 0:
             try:
 
@@ -97,8 +108,6 @@ class RPLidar(object):
 
                 if self.state == 0 :
                     print "STATE 0"
-                    self._stop_scan()
-                    time.sleep(0.1)
                     # start byte
                     if(self._start_scan() == 0) :
                         self.state = 1
@@ -126,21 +135,35 @@ class RPLidar(object):
                     #print "Angle = {angle}    |    distance = {distance}    | quality = {quality}".format(angle=angle, distance=distance, quality = quality)
                     if(start_flag == start_flag_inv):
                         self.state = 0
-
+                        self._stop_scan()
+                        time.sleep(0.1)
+                        self._restart()
+                        time.sleep(0.1)
+                        self._reset_input_buffer()
+                        print "Start flag is wrong"
                     if(check_flag != 1):
                         self.state = 0
-
+                        self._stop_scan()
+                        time.sleep(0.1)
+                        self._restart()
+                        time.sleep(0.1)
+                        self._reset_input_buffer()
+                        print "Check flag is wrong"
                     if(self.state == 1 and quality > 0):
                         self.lidar_data[int(round(angle)%360)] = distance,quality
 
                 else: # default, should never happen...
                     self.state = 0
+                    print "default should never happen!"
 
             except:
-                #traceback.print_exc()
+                traceback.print_exc()
                 exit(0)
         #End of while loop. Exit gracefully
         print"Exiting RPLidar!"
         self._stop_scan()
+        time.sleep(0.1)
+        self._restart()
+        self._reset_input_buffer()
         self.ser.close()
         exit(0)    
