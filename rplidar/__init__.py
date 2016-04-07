@@ -2,6 +2,9 @@
 
 '''
     xvlidar.py - Python class for reading from GetSurreal's XV Lidar Controller.  
+    Author: Karel De Coster (k.decoster94@gmail.com)
+    Github: http://github.com/kareldecoster/RPLidar
+    Date: 2016-4-7
 
     Adapted from lidar.py downloaded from 
 

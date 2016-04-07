@@ -3,7 +3,9 @@
 '''
 rplidarplot.py : A little Python class to display scans from the RP Lidar
              
-2016 Karel De Coster
+Author: Karel De Coster (k.decoster94@gmail.com)
+Github: http://github.com/kareldecoster/RPLidar
+Date: 2016-4-7
 
 Based on XVlidar by Simon D. Levy (http://github.com/simondlevy/xvlidar).
 
