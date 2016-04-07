@@ -3,7 +3,7 @@
 '''
 rplidarplot.py : A little Python class to display scans from the RP Lidar
              
-Copyright (C) 2016 Karel De Coster
+2016 Karel De Coster
 
 Based on XVlidar by Simon D. Levy (http://github.com/simondlevy/xvlidar).
 
@@ -21,7 +21,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this code.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-#COM_PORT                   = 'COM42'           # Windows
 COM_PORT                    = '/dev/ttyO1'    # Linux
 
 # XVLIDAR-04LX specs
@@ -41,8 +40,6 @@ import sys
 done = 0
 
 def signal_handler(signal, frame):
-        print('You pressed Ctrl+C!')
-        #sys.exit(0)
         global done 
         done = 1
 

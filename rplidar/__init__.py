@@ -107,11 +107,9 @@ class RPLidar(object):
                 time.sleep(0.0001) # do not hog the processor power
 
                 if self.state == 0 :
-                    print "STATE 0"
                     # start byte
                     if(self._start_scan() == 0) :
                         self.state = 1
-                        print "STATE 1"
                     else:
 		             	self.state = 0
                 elif self.state == 1 :
@@ -140,7 +138,6 @@ class RPLidar(object):
                         self._restart()
                         time.sleep(0.1)
                         self._reset_input_buffer()
-                        print "Start flag is wrong"
                     if(check_flag != 1):
                         self.state = 0
                         self._stop_scan()
@@ -148,19 +145,16 @@ class RPLidar(object):
                         self._restart()
                         time.sleep(0.1)
                         self._reset_input_buffer()
-                        print "Check flag is wrong"
                     if(self.state == 1 and quality > 0):
                         self.lidar_data[int(round(angle)%360)] = distance,quality
 
                 else: # default, should never happen...
                     self.state = 0
-                    print "default should never happen!"
 
             except:
                 traceback.print_exc()
                 exit(0)
         #End of while loop. Exit gracefully
-        print"Exiting RPLidar!"
         self._stop_scan()
         time.sleep(0.1)
         self._restart()
