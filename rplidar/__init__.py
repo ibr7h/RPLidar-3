@@ -130,7 +130,7 @@ class RPLidar(object):
 
                     # check flag
                     check_flag = data[1] & 0x01
-                    #print "Angle = {angle}    |    distance = {distance}    | quality = {quality}".format(angle=angle, distance=distance, quality = quality)
+
                     if(start_flag == start_flag_inv):
                         self.state = 0
                         self._stop_scan()
