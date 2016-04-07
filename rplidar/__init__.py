@@ -22,7 +22,7 @@
     GNU General Public License for more details.
 '''
 
-import threading, time, serial, traceback
+import threading, time, serial, traceback, os
 
 class RPLidar(object):
 
@@ -100,7 +100,10 @@ class RPLidar(object):
         self.ser.flushInput()
                   
     def _read_lidar(self):
-
+        
+        os.system("echo 23 > /sys/class/gpio/export")
+        os.system("echo out > /sys/class/gpio/gpio23/direction")
+        os.system("echo 1 > /sys/class/gpio/gpio23/value")
         nb_errors = 0
         self._restart()
         self._reset_input_buffer()
@@ -163,4 +166,5 @@ class RPLidar(object):
         self._restart()
         self._reset_input_buffer()
         self.ser.close()
+        os.system("echo 23 > /sys/class/gpio/unexport")
         exit(0)    
