@@ -23,7 +23,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this code.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-COM_PORT                    = '/dev/ttyO1'    # Linux
+COM_PORT                    = '/dev/ttyO5'    # Linux
 
 # XVLIDAR-04LX specs
 RPLIDAR_MAX_SCAN_DIST_MM    = 6000
