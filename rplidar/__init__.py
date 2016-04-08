@@ -152,7 +152,7 @@ class RPLidar(object):
                         time.sleep(0.1)
                         self._reset_input_buffer()
                     if(self.state == 1 and quality > 0):
-                        self.lidar_data[int(round(angle - 90)%360)] = distance,quality #90 Degree rotation due to setup
+                        self.lidar_data[int(round(angle)-90)%360] = distance,quality #90 Degree rotation due to setup
 
                 else: # default, should never happen...
                     self.state = 0
