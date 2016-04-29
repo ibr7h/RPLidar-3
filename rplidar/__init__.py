@@ -109,8 +109,9 @@ class RPLidar(object):
         self._reset_input_buffer()
         while self.exitflag == 0:
             try:
-
-                time.sleep(0.0001) # do not hog the processor power
+                #print self.ser.inWaiting()
+                if(self.ser.inWaiting() < 2*5): 
+                    time.sleep(0.0001) # do not hog the processor power
 
                 if self.state == 0 :
                     # start byte
@@ -119,40 +120,44 @@ class RPLidar(object):
                     else:
 		             	self.state = 0
                 elif self.state == 1 :
-                    data = [ord(b) for b in self._read_bytes(5)]
+                    buffer=[] 
+                    buffer = [ord(b) for b in self._read_bytes(5*2)]
+                    i=0
+                    while i < 2:
+                        data = buffer[i:i+5]
+                        i = i + 1
+                        # quality
+                        quality = data[0] & 0xFC
 
-                    # quality
-                    quality = data[0] & 0xFC
+                        # start flag	-- 1 for new rotation of data
+                        start_flag = data[0] & 0x01
+                        start_flag_inv = data[0] & 0x02
 
-                    # start flag	-- 1 for new rotation of data
-                    start_flag = data[0] & 0x01
-                    start_flag_inv = data[0] & 0x02
+                        # angle
+                        angle = (data[2]*128 + (data[1]>>1)) / 64.
 
-                    # angle
-                    angle = (data[2]*128 + (data[1]>>1)) / 64.
+                        # distance
+                        distance = (data[4]<<8 | data[3]) / 4
 
-                    # distance
-                    distance = (data[4]<<8 | data[3]) / 4
-
-                    # check flag
-                    check_flag = data[1] & 0x01
-
-                    if(start_flag == start_flag_inv):
-                        self.state = 0
-                        self._stop_scan()
-                        time.sleep(0.1)
-                        self._restart()
-                        time.sleep(0.1)
-                        self._reset_input_buffer()
-                    if(check_flag != 1):
-                        self.state = 0
-                        self._stop_scan()
-                        time.sleep(0.1)
-                        self._restart()
-                        time.sleep(0.1)
-                        self._reset_input_buffer()
-                    if(self.state == 1 and quality > 0):
-                        self.lidar_data[int(round(angle)-90)%360] = distance,quality #90 Degree rotation due to setup
+                        # check flag
+                        check_flag = data[1] & 0x01
+                        # print "Angle {angle} | Distance {distance} | quality {quality}".format(angle=angle, distance=distance, quality=quality)
+                        if(start_flag == start_flag_inv):
+                            self.state = 0
+                            self._stop_scan()
+                            time.sleep(0.1)
+                            self._restart()
+                            time.sleep(0.1)
+                            self._reset_input_buffer()
+                        if(check_flag != 1):
+                            self.state = 0
+                            self._stop_scan()
+                            time.sleep(0.1)
+                            self._restart()
+                            time.sleep(0.1)
+                            self._reset_input_buffer()
+                        if(self.state == 1 and quality > 0):
+                            self.lidar_data[int(round(angle)-90)%360] = distance,quality #90 Degree rotation due to setup
 
                 else: # default, should never happen...
                     self.state = 0
